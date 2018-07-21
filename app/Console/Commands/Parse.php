@@ -56,6 +56,11 @@ class Parse extends Command
         elseif (!$config['parse_num']) throw new \Exception('Number of items to parse is not specified.');
         elseif(!$config['update_num']) throw new \Exception('Number of items to update is not specified.');
 
-        elseif($config['parse_num'] || $config['parse_num'])throw new \Exception('Number of items must be a positive integer.');
+        elseif(!is_numeric($config['parse_num']) || $config['parse_num'] < 1 || $config['parse_num'] != round($config['parse_num']))
+            throw new \Exception('Number of items to parse must be a positive integer.');
+
+        elseif(!is_numeric($config['update_num']) || $config['update_num'] < 1 || $config['update_num'] != round($config['update_num']))
+            throw new \Exception('Number of items to update must be a positive integer.');
+
     }
 }
