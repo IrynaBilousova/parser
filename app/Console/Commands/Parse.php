@@ -49,7 +49,7 @@ class Parse extends Command
             $parser = new CatalogParser($config['parse_num'], $config['update_num']);
             $parser->parse($url);
         }
-        echo "Parsed successfully.";
+        echo "\nParsed successfully.\n";
     }
 
     public static function validateConfig($config)
