@@ -8,10 +8,9 @@ use App\Parser\ObjectParser;
 
 class CatalogParser extends Parser
 {
-
-    protected $parse_num;
-
     protected $category;
+    
+    protected $parse_num;
 
     protected $update_num;
 
