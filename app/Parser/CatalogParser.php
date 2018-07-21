@@ -106,16 +106,22 @@ class CatalogParser extends Parser
         $attributes['category'] = $category;
         $attributes['name'] = $item->filterXPath('//div[contains(@class, "list-model-title")]')->first()->text();
 
-        try
-        {
+        //get price
+        try {
             $attributes['price'] = $item->filterXPath('//span[contains(@id, "price_")]')->text();
         } catch (\Exception $exception) {
-           $attributes['price'] = $item->filterXPath('//div[@class="hotprices-div"]')->filter('span')->first()->text();
+            try {
+                $attributes['price'] = $item->filterXPath('//div[@class="hotprices-div"]')->filter('span')->first()->text();
+            } catch (\Exception $exception) {
+                $attributes['price'] = 'not in stock';
+            }
         }
-
-
-        $descNode = $item->filterXPath('//div[contains(@class, "list-model-desc")]');
-        if ($descNode) $attributes['description'] = $descNode->text();
+        //get description
+        try {
+            $attributes['description'] = $item->filterXPath('//div[contains(@class, "list-model-desc")]')->text();
+        } catch (\Exception $exception) {
+            $attributes['description'] = 'no description';
+        }
 
         return $attributes;
     }

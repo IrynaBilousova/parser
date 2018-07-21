@@ -43,11 +43,13 @@ class Parse extends Command
 
         static::validateConfig($config);
 
+        echo "Please, wait. It may take some time.";
         //parse each category
         foreach ($config['urls'] as $url) {
             $parser = new CatalogParser($config['parse_num'], $config['update_num']);
             $parser->parse($url);
         }
+        echo "Parsed successfully.";
     }
 
     public static function validateConfig($config)
