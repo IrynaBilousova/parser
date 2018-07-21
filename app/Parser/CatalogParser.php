@@ -55,6 +55,8 @@ class CatalogParser extends Parser
                         $objectParser = new ObjectParser($product);
                         $objectParser->parse(static::getProductUrl($item));
                     }
+                } else {
+                    return;
                 }
             });
 
@@ -103,7 +105,14 @@ class CatalogParser extends Parser
     {
         $attributes['category'] = $category;
         $attributes['name'] = $item->filterXPath('//div[contains(@class, "list-model-title")]')->first()->text();
-        $attributes['price'] = $item->filterXPath('//span[contains(@id, "price_")]')->text();
+
+        try
+        {
+            $attributes['price'] = $item->filterXPath('//span[contains(@id, "price_")]')->text();
+        } catch (\Exception $exception) {
+           $attributes['price'] = $item->filterXPath('//div[@class="hotprices-div"]')->filter('span')->first()->text();
+        }
+
 
         $descNode = $item->filterXPath('//div[contains(@class, "list-model-desc")]');
         if ($descNode) $attributes['description'] = $descNode->text();
