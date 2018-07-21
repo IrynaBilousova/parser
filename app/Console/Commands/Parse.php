@@ -41,9 +41,9 @@ class Parse extends Command
     {
         $config = require(app_path('Parser/config.php'));
 
-        $parser = new CatalogParser($config['parse_num'], $config['update_num']);
-
+        //parse each category
         foreach ($config['urls'] as $url) {
+            $parser = new CatalogParser($config['parse_num'], $config['update_num']);
             $parser->parse($url);
         }
     }

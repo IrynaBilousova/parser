@@ -8,10 +8,16 @@ use App\Parser\ObjectParser;
 
 class CatalogParser extends Parser
 {
-    //TODO: использовать эти значения для ограничения парсера
+
     protected $parse_num;
 
+    protected $category;
+
     protected $update_num;
+
+    protected $parsed = 0;
+
+    protected $updated = 0;
 
     public function __construct($parse_num, $update_num)
     {
@@ -28,26 +34,48 @@ class CatalogParser extends Parser
      */
     public function parse($url)
     {
-        $html = parent::curl_get($url);
+        if ($this->parsed < $this->parse_num) {
 
-        $crawler = new Crawler($html);
+            $html = parent::curl_get($url);
 
-        $category = $crawler->filterXPath('//h1[contains(@class, "oth")]')->text();
+            $crawler = new Crawler($html);
 
-        $crawler->filterXPath('//tr[contains(@class, "list-")]')->each(function (Crawler $item) use ($category) {
-            $product = Product::createRecord(static::getProductAttributes($item, $category));
+            if (!$this->category) $this->category = $crawler->filterXPath('//h1')->text();
 
-            //Parse page with description
-            $objectParser = new ObjectParser($product);
-            $objectParser->parse(static::getProductUrl($item));
+            $crawler->filterXPath('//tr[contains(@class, "list-")]')->each(function (Crawler $item) {
+                if ($this->parsed < $this->parse_num) {
+                    $can_update = $this->updated < $this->update_num;
+                    $results = Product::manageRecords(static::getProductAttributes($item, $this->category), $can_update);
+                    $product = $results['product'];
 
-        });
+                    $this->updateCounter($results['status']);
 
-        $nextUrl = static::getNextPageUrl($crawler);
-        if ($nextUrl) $this->parse($nextUrl);
+                    //Parse page with description
+                    if ($product) {
+                        $objectParser = new ObjectParser($product);
+                        $objectParser->parse(static::getProductUrl($item));
+                    }
+                }
+            });
+
+            $nextUrl = static::getNextPageUrl($crawler);
+            if ($nextUrl) $this->parse($nextUrl);
+        }
     }
 
-
+    /**
+     * Count parsed and updated items.
+     *
+     * @string $status
+     */
+    public  function updateCounter($status)
+    {
+        if ($status === 'created') {
+            $this->parsed += 1;
+        } elseif ($status === 'updated') {
+            $this->updated += 1;
+        }
+    }
     /**
      * Get url of the next page if it exists.
      *
@@ -56,11 +84,13 @@ class CatalogParser extends Parser
      */
     public static function getNextPageUrl(Crawler $crawler)
     {
-        $nextPage = $crawler->filterXPath('//a[@id="pager_next"]');
+        $nextPage = $crawler->filterXPath('//*[@id="pager_next"]');
 
-        if (!$nextPage) return;
-
-        return 'm.ua' . $nextPage->attr('href');
+       try{
+           return 'm.ua' . $nextPage->attr('href');
+       } catch (\InvalidArgumentException $exception) {
+           return;
+       }
     }
 
     /**
