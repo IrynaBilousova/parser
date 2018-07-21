@@ -20,7 +20,7 @@ class Parse extends Command
      *
      * @var string
      */
-    protected $description = 'Parses all listed urls';
+    protected $description = 'Parses all listed urls.';
 
     /**
      * Create a new command instance.
@@ -41,10 +41,21 @@ class Parse extends Command
     {
         $config = require(app_path('Parser/config.php'));
 
+        static::validateConfig($config);
+
         //parse each category
         foreach ($config['urls'] as $url) {
             $parser = new CatalogParser($config['parse_num'], $config['update_num']);
             $parser->parse($url);
         }
+    }
+
+    public static function validateConfig($config)
+    {
+        if(!$config['urls']) throw new \Exception('No urls to parse.');
+        elseif (!$config['parse_num']) throw new \Exception('Number of items to parse is not specified.');
+        elseif(!$config['update_num']) throw new \Exception('Number of items to update is not specified.');
+
+        elseif($config['parse_num'] || $config['parse_num'])throw new \Exception('Number of items must be a positive integer.');
     }
 }
